@@ -71,7 +71,7 @@ def main(args):
                                                       num_workers=nw,
                                                       collate_fn=train_data_set.collate_fn)
 
-    model = get_model(num_classes=args.num_classes)
+    model = get_model(num_classes=args.num_classes + 1)
     print(model)
     model.to(device)
 
