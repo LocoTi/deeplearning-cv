@@ -102,7 +102,7 @@ def main(args):
                                               print_freq=50)
         mean_loss, lr = metric_logger["mloss"], metric_logger["lr"]
 
-        train_loss.append(mean_loss.item())
+        train_loss.append(mean_loss)
         learning_rate.append(lr)
 
         # update the learning rate
@@ -114,19 +114,28 @@ def main(args):
         # write into txt
         with open(results_file, "a") as f:
             # 写入的数据包括coco指标还有loss和learning rate
-            result_info = [str(round(i, 4)) for i in coco_info + [mean_loss.item(), lr]]
+            result_info = [str(round(i, 4)) for i in coco_info + [mean_loss, lr]]
             txt = "epoch:{} {}".format(epoch, '  '.join(result_info))
             f.write(txt + "\n")
 
         val_map.append(coco_info[1])  # pascal mAP
 
         # save weights
-        save_files = {
-            'model': model.state_dict(),
-            'optimizer': optimizer.state_dict(),
-            'lr_scheduler': lr_scheduler.state_dict(),
-            'epoch': epoch}
-        torch.save(save_files, "./weights/resNetFpn-model-{}.pth".format(epoch))
+        # save_files = {
+        #     'model': model.state_dict(),
+        #     'optimizer': optimizer.state_dict(),
+        #     'lr_scheduler': lr_scheduler.state_dict(),
+        #     'epoch': epoch}
+        # torch.save(save_files, "./weights/resNetFpn-model-{}.pth".format(epoch))
+
+        if args.output_dir:
+            utils.save_on_master({
+                'model': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'lr_scheduler': lr_scheduler.state_dict(),
+                'args': args,
+                'epoch': epoch},
+                os.path.join(args.output_dir, 'resnet-fpn-model-{}.pth'.format(epoch)))
     
     # plot loss and lr curve
     if len(train_loss) != 0 and len(learning_rate) != 0:
